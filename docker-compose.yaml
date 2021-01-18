@@ -1,0 +1,20 @@
+version: "2"
+
+networks:
+  pop_network:
+    external: true
+
+services:
+  gofabric-populate:
+    image: node:carbon
+    ports:
+      - 3010:80
+    command: bash -c 'npm start'
+    volumes:
+      - ./:/rest-server
+    env_file:
+      - .env
+    working_dir: /rest-server
+    container_name: gofabric-populate
+    networks:
+      - pop_network
