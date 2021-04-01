@@ -104,16 +104,16 @@ class DataPostRouter {
      */
     createPost = async (req: Request, res: Response, next: NextFunction) => {
     
-      if (!req.query.url || !req.query.type ||  !req.query.n0 || 
-          !req.query.noneA || !req.query.noneB || !req.query.lightA || !req.query.lightB || !req.query.mediumA || !req.query.mediumB ||
-          !req.query.hardA || !req.query.hardB || !req.query.decA || !req.query.decB) {
+      if (!req.query.url || !req.query.type ||  !req.query.n0 || !req.query.n1) {
+     //     !req.query.noneA || !req.query.noneB || !req.query.lightA || !req.query.lightB || !req.query.mediumA || !req.query.mediumB ||
+      //    !req.query.hardA || !req.query.hardB || !req.query.decA || !req.query.decB) {
         res.statusMessage = 'Missing param. Ex: /create?url=http://${HOST}&type=foundationVolunteer&n0=2000&lightA=100&mediumA=50';
         return res.status(500).end();
       }
       const url = req.query.url;
       const prop = req.query.type;
       const n0:number = parseInt(req.query.n0 as string);
-      const noneA:number = parseInt(req.query.noneA as string);
+  /*    const noneA:number = parseInt(req.query.noneA as string);
       const noneB:number = parseInt(req.query.noneB as string);
       const lightA:number = parseInt(req.query.lightA as string);
       const lightB:number = parseInt(req.query.lightB as string);
@@ -122,8 +122,8 @@ class DataPostRouter {
       const hardA:number = parseInt(req.query.hardA as string);
       const hardB:number = parseInt(req.query.hardB as string);
       const decA:number = parseInt(req.query.decA as string);
-      const decB:number = parseInt(req.query.decB as string);
-      const n1:number = n0+noneA+noneB+lightA+lightB+mediumA+mediumB+hardA+hardB+decA+decB-1;
+      const decB:number = parseInt(req.query.decB as string);*/
+      const n1:number = parseInt(req.query.n1 as string); //n0+noneA+noneB+lightA+lightB+mediumA+mediumB+hardA+hardB+decA+decB-1;
    
 
       const assetType = req.query.type as string;
@@ -144,9 +144,11 @@ class DataPostRouter {
         for (var i:number=i0; i<=ii1; i++) {
           const n = ("000000000" + i).substr(5);
           var assetObj:object = {'@assetType': req.query.type};
-          assetObj["cpf"] = n as string;
-          assetObj["name"] = this.randName(n);
-          assetObj["contact"] = "+55 11 9"+("000000000" + i).substr(8);
+          assetObj["id"] = n as string;
+          assetObj["from"] = n as string;
+          assetObj["to"] = n as string;
+       //   assetObj["name"] = this.randName(n);
+        //  assetObj["contact"] = "+55 11 9"+("000000000" + i).substr(8);
 
           promises.push(axiosApi.post(url+'/api/invoke/createAsset', {
             asset: [assetObj],
@@ -161,7 +163,7 @@ class DataPostRouter {
       results.errors.push(promiseRes.errors);
       results.results.push(promiseRes.results);
 
-      var i0 = n0;
+ /*     var i0 = n0;
       var i1 = (n0+limit)>n1 ? n1 : n0+limit;
 
       for (var j=0; i0<=n1 && i1<=n1+limit; i0+=limit, i1+=limit) {
@@ -275,7 +277,7 @@ class DataPostRouter {
       results.symptResults.push(symptUpdatePromisesRes.results);
       }
 
-
+*/
     const date1:any = new Date();
     console.log("Final time: ", date1);
 

@@ -17,26 +17,26 @@ class DataPostRouter {
          * Create a new Operator by CNPJ
          */
         this.createPost = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
-            if (!req.query.url || !req.query.type || !req.query.n0 ||
-                !req.query.noneA || !req.query.noneB || !req.query.lightA || !req.query.lightB || !req.query.mediumA || !req.query.mediumB ||
-                !req.query.hardA || !req.query.hardB || !req.query.decA || !req.query.decB) {
+            if (!req.query.url || !req.query.type || !req.query.n0 || !req.query.n1) {
+                //     !req.query.noneA || !req.query.noneB || !req.query.lightA || !req.query.lightB || !req.query.mediumA || !req.query.mediumB ||
+                //    !req.query.hardA || !req.query.hardB || !req.query.decA || !req.query.decB) {
                 res.statusMessage = 'Missing param. Ex: /create?url=http://${HOST}&type=foundationVolunteer&n0=2000&lightA=100&mediumA=50';
                 return res.status(500).end();
             }
             const url = req.query.url;
             const prop = req.query.type;
             const n0 = parseInt(req.query.n0);
-            const noneA = parseInt(req.query.noneA);
-            const noneB = parseInt(req.query.noneB);
-            const lightA = parseInt(req.query.lightA);
-            const lightB = parseInt(req.query.lightB);
-            const mediumA = parseInt(req.query.mediumA);
-            const mediumB = parseInt(req.query.mediumB);
-            const hardA = parseInt(req.query.hardA);
-            const hardB = parseInt(req.query.hardB);
-            const decA = parseInt(req.query.decA);
-            const decB = parseInt(req.query.decB);
-            const n1 = n0 + noneA + noneB + lightA + lightB + mediumA + mediumB + hardA + hardB + decA + decB - 1;
+            /*    const noneA:number = parseInt(req.query.noneA as string);
+                const noneB:number = parseInt(req.query.noneB as string);
+                const lightA:number = parseInt(req.query.lightA as string);
+                const lightB:number = parseInt(req.query.lightB as string);
+                const mediumA:number = parseInt(req.query.mediumA as string);
+                const mediumB:number = parseInt(req.query.mediumB as string);
+                const hardA:number = parseInt(req.query.hardA as string);
+                const hardB:number = parseInt(req.query.hardB as string);
+                const decA:number = parseInt(req.query.decA as string);
+                const decB:number = parseInt(req.query.decB as string);*/
+            const n1 = parseInt(req.query.n1); //n0+noneA+noneB+lightA+lightB+mediumA+mediumB+hardA+hardB+decA+decB-1;
             const assetType = req.query.type;
             const date0 = new Date();
             console.log("Initial time: ", date0);
@@ -53,9 +53,11 @@ class DataPostRouter {
                 for (var i = i0; i <= ii1; i++) {
                     const n = ("000000000" + i).substr(5);
                     var assetObj = { '@assetType': req.query.type };
-                    assetObj["cpf"] = n;
-                    assetObj["name"] = this.randName(n);
-                    assetObj["contact"] = "+55 11 9" + ("000000000" + i).substr(8);
+                    assetObj["id"] = n;
+                    assetObj["from"] = n;
+                    assetObj["to"] = n;
+                    //   assetObj["name"] = this.randName(n);
+                    //  assetObj["contact"] = "+55 11 9"+("000000000" + i).substr(8);
                     promises.push(axiosorderers_1.default.post(url + '/api/invoke/createAsset', {
                         asset: [assetObj],
                     }, { timeout: 300000 }));
@@ -64,106 +66,121 @@ class DataPostRouter {
             var promiseRes = yield this.executeAllPromises(promises, prop);
             results.errors.push(promiseRes.errors);
             results.results.push(promiseRes.results);
-            var i0 = n0;
-            var i1 = (n0 + limit) > n1 ? n1 : n0 + limit;
-            for (var j = 0; i0 <= n1 && i1 <= n1 + limit; i0 += limit, i1 += limit) {
-                var anonPromises = [];
-                var ii1 = i1;
-                if (i1 > n1)
-                    ii1 = n1;
-                for (var i = i0; i <= ii1; i++, j++) {
-                    const n = ("000000000" + i).substr(5);
-                    var assetObj = { '@assetType': "anonymousVolunteer" };
-                    assetObj["id"] = n;
-                    var volunteerObj = promiseRes.results[j];
-                    if (volunteerObj && volunteerObj["asset"] && volunteerObj["asset"][0]) {
-                        assetObj[assetType] = volunteerObj["asset"][0];
-                    }
-                    anonPromises.push(axiosorderers_1.default.post(url + '/api/invoke/createAsset', {
-                        asset: [assetObj],
-                    }, { timeout: 300000 }));
-                }
-            }
-            var anonPromiseRes = yield this.executeAllPromises(anonPromises, "anonymousVolunteer");
-            results.anonErrors.push(anonPromiseRes.errors);
-            results.anonResults.push(anonPromiseRes.results);
-            var i0 = n0;
-            var i1 = (n0 + limit) > n1 ? n1 : n0 + limit;
-            // Update volunteer group for immunization
-            for (var j = 0; i0 <= n1 && i1 <= n1 + limit; i0 += limit, i1 += limit, j++) {
-                var groupUpdatePromises = [];
-                var ii1 = i1;
-                if (i1 > n1)
-                    ii1 = n1;
-                for (var i = i0; i <= ii1; i++, j++) {
-                    var group = 'A';
-                    if (j >= noneA + lightA + mediumA + hardA + decA) {
-                        group = 'B';
-                    }
-                    const n = ("000000000" + i).substr(5);
-                    var assetObj = { '@assetType': "anonymousVolunteer" };
-                    assetObj["id"] = n;
-                    assetObj["group"] = group;
-                    groupUpdatePromises.push(axiosorderers_1.default.post(url + '/api/invoke/updateAsset', {
-                        update: assetObj,
-                    }, { timeout: 300000 }));
-                }
-                var groupUpdatePromisesRes = yield this.executeAllPromises(groupUpdatePromises, "anonymousVolunteer");
-                results.vacErrors.push(groupUpdatePromisesRes.errors);
-                results.vacResults.push(groupUpdatePromisesRes.results);
-            }
-            var i0 = n0;
-            var i1 = (n0 + limit) > n1 ? n1 : n0 + limit;
-            // Update volunteer group for immunization
-            for (var j = 0; i0 <= n1 && i1 <= n1 + limit; i0 += limit, i1 += limit) {
-                var symptUpdatePromises = [];
-                var ii1 = i1;
-                if (i1 > n1)
-                    ii1 = n1;
-                for (var i = i0; i <= ii1; i++, j++) {
-                    var sympton = 'NONE--';
-                    if (j < noneA) {
-                        sympton = 'NONE';
-                    }
-                    else if (j < noneA + lightA) {
-                        sympton = 'LIGHT';
-                    }
-                    else if (j >= noneA + lightA && j < noneA + lightA + mediumA) {
-                        sympton = 'MEDIUM';
-                    }
-                    else if (j >= noneA + lightA + mediumA && j < noneA + lightA + mediumA + hardA) {
-                        sympton = 'HARD';
-                    }
-                    else if (j >= noneA + lightA + mediumA + hardA && j < noneA + lightA + mediumA + hardA + decA) {
-                        sympton = 'DECEASED';
-                    }
-                    else if (j >= noneA + lightA + mediumA + hardA + decA && j < noneA + lightA + mediumA + hardA + decA + noneB) {
-                        sympton = 'NONE';
-                    }
-                    else if (j >= noneA + lightA + mediumA + hardA + decA + noneB && j < noneA + lightA + mediumA + hardA + decA + noneB + lightB) {
-                        sympton = 'LIGHT';
-                    }
-                    else if (j >= noneA + lightA + mediumA + hardA + decA + noneB + lightB && j < noneA + lightA + mediumA + hardA + decA + noneB + lightB + mediumB) {
-                        sympton = 'MEDIUM';
-                    }
-                    else if (j >= noneA + lightA + mediumA + hardA + decA + noneB + lightB + mediumB && j < noneA + lightA + mediumA + hardA + decA + noneB + lightB + mediumB + hardB) {
-                        sympton = 'HARD';
-                    }
-                    else if (j >= noneA + lightA + mediumA + hardA + decA + noneB + lightB + mediumB + hardB) {
-                        sympton = 'DECEASED';
-                    }
-                    const n = ("000000000" + i).substr(5);
-                    var assetObj = { '@assetType': "anonymousVolunteer" };
-                    assetObj["id"] = n;
-                    assetObj["clinicaSymptoms"] = sympton;
-                    symptUpdatePromises.push(axiosorderers_1.default.post(url + '/api/invoke/updateAsset', {
-                        update: assetObj,
-                    }, { timeout: 300000 }));
-                }
-                var symptUpdatePromisesRes = yield this.executeAllPromises(symptUpdatePromises, "anonymousVolunteer");
-                results.symptErrors.push(symptUpdatePromisesRes.errors);
-                results.symptResults.push(symptUpdatePromisesRes.results);
-            }
+            /*     var i0 = n0;
+                 var i1 = (n0+limit)>n1 ? n1 : n0+limit;
+           
+                 for (var j=0; i0<=n1 && i1<=n1+limit; i0+=limit, i1+=limit) {
+                   var anonPromises = [];
+                   var ii1 = i1
+                   if (i1>n1) ii1=n1 ;
+           
+                   for (var i:number=i0; i<=ii1; i++, j++) {
+                     const n = ("000000000" + i).substr(5);
+                     var assetObj:object = {'@assetType': "anonymousVolunteer"};
+                     assetObj["id"] = n;
+           
+                     var volunteerObj:object = promiseRes.results[j];
+                     if (volunteerObj && volunteerObj["asset"] && volunteerObj["asset"][0]) {
+                       assetObj[assetType] = volunteerObj["asset"][0];
+                     }
+           
+                     anonPromises.push(axiosApi.post(url+'/api/invoke/createAsset', {
+                       asset: [assetObj],
+                     },
+                     { timeout: 300000 }
+                     ));
+                   }
+                 }
+                 
+                 var anonPromiseRes = await this.executeAllPromises(anonPromises, "anonymousVolunteer");
+           
+                 results.anonErrors.push(anonPromiseRes.errors);
+                 results.anonResults.push(anonPromiseRes.results);
+                
+                 var i0 = n0;
+                 var i1 = (n0+limit)>n1 ? n1 : n0+limit;
+           
+                 // Update volunteer group for immunization
+                 for (var j=0; i0<=n1 && i1<=n1+limit; i0+=limit, i1+=limit, j++) {
+                   var groupUpdatePromises = [];
+                   var ii1 = i1
+                   if (i1>n1) ii1=n1 ;
+                   for (var i:number=i0; i<=ii1; i++, j++) {
+                     var group='A'
+                     if (j>=noneA+lightA+mediumA+hardA+decA) {
+                       group = 'B'
+                     }
+                     const n = ("000000000" + i).substr(5);
+                     var assetObj:object = {'@assetType': "anonymousVolunteer"};
+                     assetObj["id"] = n;
+                     assetObj["group"] = group;
+           
+                     groupUpdatePromises.push(axiosApi.post(url+'/api/invoke/updateAsset', {
+                       update: assetObj,
+                     },
+                     { timeout: 300000 }
+                     ));
+                   }
+                 var groupUpdatePromisesRes = await this.executeAllPromises(groupUpdatePromises, "anonymousVolunteer");
+           
+                 results.vacErrors.push(groupUpdatePromisesRes.errors);
+                 results.vacResults.push(groupUpdatePromisesRes.results);
+                 }
+               
+           
+                 var i0 = n0;
+                 var i1 = (n0+limit)>n1 ? n1 : n0+limit;
+           
+                 // Update volunteer group for immunization
+                 for (var j=0; i0<=n1 && i1<=n1+limit; i0+=limit, i1+=limit) {
+              
+                   var symptUpdatePromises = [];
+                   var ii1 = i1
+                   if (i1>n1) ii1=n1 ;
+                   for (var i:number=i0; i<=ii1; i++, j++) {
+                     var sympton = 'NONE--';
+                     if (j<noneA) {
+                       sympton = 'NONE';
+                     } else if (j<noneA+lightA) {
+                       sympton = 'LIGHT';
+                     } else if (j>=noneA+lightA && j<noneA+lightA+mediumA) {
+                       sympton = 'MEDIUM';
+                     } else if (j>=noneA+lightA+mediumA && j<noneA+lightA+mediumA+hardA) {
+                       sympton = 'HARD';
+                     } else if (j>=noneA+lightA+mediumA+hardA && j<noneA+lightA+mediumA+hardA+decA) {
+                       sympton = 'DECEASED';
+                     } else if (j>=noneA+lightA+mediumA+hardA+decA && j<noneA+lightA+mediumA+hardA+decA+noneB) {
+                       sympton = 'NONE';
+                     } else if (j>=noneA+lightA+mediumA+hardA+decA+noneB && j<noneA+lightA+mediumA+hardA+decA+noneB+lightB) {
+                       sympton = 'LIGHT';
+                     } else if (j>=noneA+lightA+mediumA+hardA+decA+noneB+lightB && j<noneA+lightA+mediumA+hardA+decA+noneB+lightB+mediumB) {
+                       sympton = 'MEDIUM';
+                     } else if (j>=noneA+lightA+mediumA+hardA+decA+noneB+lightB+mediumB && j<noneA+lightA+mediumA+hardA+decA+noneB+lightB+mediumB+hardB) {
+                       sympton = 'HARD';
+                     } else if (j>=noneA+lightA+mediumA+hardA+decA+noneB+lightB+mediumB+hardB) {
+                       sympton = 'DECEASED';
+                     }
+           
+                     const n = ("000000000" + i).substr(5);
+                     var assetObj:object = {'@assetType': "anonymousVolunteer"};
+                     assetObj["id"] = n;
+                     assetObj["clinicaSymptoms"] = sympton;
+           
+                     symptUpdatePromises.push(axiosApi.post(url+'/api/invoke/updateAsset', {
+                       update: assetObj,
+                     },
+                     { timeout: 300000 }
+                     ));
+                   }
+           
+                
+                 var symptUpdatePromisesRes = await this.executeAllPromises(symptUpdatePromises, "anonymousVolunteer");
+           
+                 results.symptErrors.push(symptUpdatePromisesRes.errors);
+                 results.symptResults.push(symptUpdatePromisesRes.results);
+                 }
+           
+           */
             const date1 = new Date();
             console.log("Final time: ", date1);
             const diffTime = Math.abs(date1 - date0);
