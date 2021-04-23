@@ -12,8 +12,6 @@ services:
     command: bash -c 'npm start'
     volumes:
       - ./:/rest-server
-    env_file:
-      - .env
     working_dir: /rest-server
     container_name: gofabric-populate
     networks:

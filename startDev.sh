@@ -1,16 +1,5 @@
 #!/usr/bin/env bash
 
-# Get env file
-source .env
-
-while getopts "g" opt; do
-    case $opt in
-        g)
-            GENERATE_CERT=true
-            ;;
-    esac
-done
-
 # Clear unused images and volumes
 docker ps -a | grep "gofabric-populate" | awk '{print $1}' | xargs docker stop
 docker ps -a | grep "gofabric-populate" | awk '{print $1}' | xargs docker rm
